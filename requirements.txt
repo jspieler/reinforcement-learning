@@ -1,0 +1,5 @@
+tensorflow-gpu
+pytorch
+matplotlib
+numpy
+gym
