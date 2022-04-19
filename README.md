@@ -53,7 +53,7 @@ This repository contains minimalistic implementations of several (Deep) Reinforc
 **Paper:** [Soft Actor-Critic: Off-Policy Maximum Entropy Deep Reinforcement Learning with a Stochastic Actor](https://arxiv.org/pdf/1801.01290.pdf)<br>
 **Method:** Off-Policy / Temporal-Difference / Actor-Critic / Model-Free<br>
 **Action space:** Continuous <br>
-**Implementation:** not yet implemented
+**Implementation:** [PyTorch](https://github.com/jspieler/reinforcement-learning/blob/main/PyTorch/agents/sac.py)
 
 <hr>
 
