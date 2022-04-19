@@ -1,3 +1,5 @@
+import os 
+import random
 import gym
 from argparse import ArgumentParser
 import numpy as np
@@ -7,9 +9,19 @@ from utils.plots import plot_avg_reward
 
 from agents.ddpg import DDPG 
 from agents.td3 import TD3
+from agents.sac import SAC
 
 
-device = torch.device('gpu' if torch.cuda.is_available() else 'cpu')
+def set_seeds(seed):
+    os.environ['PYTHONHASHSEED'] = str(seed)
+    random.seed(seed)
+    torch.manual_seed(seed)
+    np.random.seed(seed)
+    env.seed(seed)
+    env.action_space.np_random.seed(seed)
+
+
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 
 if __name__ == '__main__':
@@ -23,8 +35,9 @@ if __name__ == '__main__':
     args = parser.parse_args()
     params = vars(args)
 
-    seed = params['seed']
     env = gym.make(params['env'])
+    seed = params['seed']
+    set_seeds(seed)
 
     num_states = env.observation_space.shape[0]
     num_actions = env.action_space.shape[0]
@@ -38,6 +51,8 @@ if __name__ == '__main__':
         agent = DDPG(num_actions, num_states, lower_bound, upper_bound)
     elif params['agent'] == 'TD3':
         agent = TD3(num_actions, num_states, lower_bound, upper_bound)
+    elif params['agent'] == 'SAC':
+        agent = SAC(num_actions, num_states, lower_bound, upper_bound, env.action_space)
     else:
         raise NotImplementedError("Algorithm is not implemented!")
 
