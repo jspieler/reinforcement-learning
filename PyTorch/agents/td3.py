@@ -28,12 +28,12 @@ class TD3:
         self.actor_update_steps = update_frequency
         self.noise = GaussianActionNoise(mean=np.zeros(num_actions), std_deviation=float(noise_stddev) * np.ones(num_actions))
 
-        self.actor = Actor(num_actions, num_states, hidden_size)
-        self.critic = Critic(num_actions+num_states, hidden_size)
-        self.critic2 = Critic(num_actions+num_states, hidden_size, name='critic2')
-        self.target_actor = Actor(num_actions, num_states, hidden_size, name='target_actor')
-        self.target_critic = Critic(num_actions+num_states, hidden_size, name='target_critic')
-        self.target_critic2 = Critic(num_actions+num_states, hidden_size, name='target_critic2')
+        self.actor = Actor(num_actions, num_states, hidden_size).to(device)
+        self.critic = Critic(num_actions+num_states, hidden_size).to(device)
+        self.critic2 = Critic(num_actions+num_states, hidden_size, name='critic2').to(device)
+        self.target_actor = Actor(num_actions, num_states, hidden_size, name='target_actor').to(device)
+        self.target_critic = Critic(num_actions+num_states, hidden_size, name='target_critic').to(device)
+        self.target_critic2 = Critic(num_actions+num_states, hidden_size, name='target_critic2').to(device)
 
         self.actor_optimizer = Adam(self.actor.parameters(), lr_actor)
         self.critic_optimizer = Adam(self.critic.parameters(), lr_critic)
@@ -88,7 +88,7 @@ class TD3:
     def update(self, state_batch, action_batch, reward_batch, next_state_batch, done_batch):
         # Training and updating Actor & Critic networks.
         target_actions = self.target_actor.forward(next_state_batch, self.max_action)
-        target_actions += torch.clamp(torch.normal(mean=0.0, std=0.2, size=[*np.shape(target_actions)]), -0.5, 0.5)
+        target_actions += torch.clamp(torch.normal(mean=0.0, std=0.2, size=[*np.shape(target_actions)], device=device), -0.5, 0.5)
         target_actions = torch.clamp(target_actions, self.min_action, self.max_action)
 
         target_next_state_values = self.target_critic.forward(next_state_batch, target_actions)
