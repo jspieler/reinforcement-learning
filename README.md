@@ -23,7 +23,7 @@ This repository contains minimalistic implementations of several (Deep) Reinforc
     ```
 3. Run algorithms for `OpenAI gym` environments, e.g. DDPG on `Pendulum-v1` for 150 episodes:
     ```
-    python train_agent.py --agent DDPG --env Pendulum-v1 --seed 1234 --ep 150
+    python PyTorch/train_agent.py --agent DDPG --env Pendulum-v1 --seed 1234 --ep 150
     ```
 
 # Further information
@@ -50,10 +50,10 @@ This repository contains minimalistic implementations of several (Deep) Reinforc
 
 <a name='sac'></a>
 ## Soft Actor-Critic (SAC)
-**Paper:** [Soft Actor-Critic: Off-Policy Maximum Entropy Deep Reinforcement Learning with a Stochastic Actor](https://arxiv.org/pdf/1801.01290.pdf)<br>
+**Paper:** [Soft Actor-Critic: Off-Policy Maximum Entropy Deep Reinforcement Learning with a Stochastic Actor](https://arxiv.org/pdf/1801.01290.pdf) / [Soft Actor-Critic Algorithms and Applications](https://arxiv.org/pdf/1801.01290.pdf)<br>
 **Method:** Off-Policy / Temporal-Difference / Actor-Critic / Model-Free<br>
 **Action space:** Continuous <br>
-**Implementation:** [PyTorch](https://github.com/jspieler/reinforcement-learning/blob/main/PyTorch/agents/sac.py)
+**Implementation:** [PyTorch](https://github.com/jspieler/reinforcement-learning/blob/main/PyTorch/agents/sac.py) / [TensorFlow2](https://github.com/jspieler/reinforcement-learning/blob/main/TensorFlow2/agents/sac.py)
 
 <hr>
 
