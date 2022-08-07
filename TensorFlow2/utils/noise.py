@@ -32,4 +32,4 @@ class GaussianActionNoise:
         self.std_dev = std_deviation
 
     def __call__(self):
-        return np.random.normal(self.mean, self.std_dev)
+        return np.random.normal(self.mean, self.std_dev, size=self.mean.shape)
