@@ -4,7 +4,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 
 setuptools.setup(
-    name='reinforcement_learning',
+    name='rl_algorithms',
     version='0.0.1',
     author='J. Spieler',
     author_email='jonathanspi30@gmail.com',
@@ -16,6 +16,6 @@ setuptools.setup(
         "Bug Tracker": "https://github.com/jspieler/reinforcement-learning/issues"
     },
     license='MIT',
-    packages=['PyTorch', 'PyTorch.agents', 'PyTorch.utils', 'TensorFlow2', 'TensorFlow2.agents', 'TensorFlow2.utils'],
+    packages=setuptools.find_packages(),
     install_requires=['numpy', 'torch', 'torchvision', 'torchaudio', 'tensorflow', 'matplotlib', 'gym'],
 )

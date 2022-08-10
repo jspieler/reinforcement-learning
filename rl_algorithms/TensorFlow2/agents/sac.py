@@ -86,7 +86,7 @@ class SAC:
         
         return action.numpy()[0]
 
-    # @tf.function
+    # @tf.function # with decoration code is not running bc. networks are not built?
     def update(self, state_batch, action_batch, reward_batch, next_state_batch, done_batch):
         # update critic
         with tf.GradientTape() as tape1, tf.GradientTape() as tape2:
