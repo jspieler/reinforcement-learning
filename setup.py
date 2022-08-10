@@ -17,5 +17,5 @@ setuptools.setup(
     },
     license='MIT',
     packages=['PyTorch', 'TensorFlow2'],
-    install_requires=['numpy', 'pytorch', 'tensorflow', 'matplotlib', 'gym'],
+    install_requires=['numpy', 'torch', 'torchvision', 'torchaudio', 'tensorflow', 'matplotlib', 'gym'],
 )
