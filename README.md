@@ -13,17 +13,25 @@ This repository contains minimalistic implementations of several (Deep) Reinforc
 - [WD3](https://arxiv.org/pdf/2006.12622.pdf) / [AWD3](https://arxiv.org/pdf/2111.06780.pdf)
 
 # Quickstart
-1. Clone repository using ssh:
+1. Install package via pip:
     ```
-    git clone git@github.com:jspieler/reinforcement-learning.git
+    pip install git+https://github.com/jspieler/reinforcement-learning.git
     ```
-2. Install requirements using `pip`:
+2. Run algorithms for `OpenAI gym` environments, e.g. DDPG on `Pendulum-v1` for 150 episodes:
     ```
-    python -m pip install -r requirements.txt
+    python rl_algorithms/PyTorch/train_agent.py --agent DDPG --env Pendulum-v1 --seed 1234 --ep 150
     ```
-3. Run algorithms for `OpenAI gym` environments, e.g. DDPG on `Pendulum-v1` for 150 episodes:
+3. Alternatively, here is a quick example of how to train DDPG on the `Pendulum-v1`environment using PyTorch:
     ```
-    python PyTorch/train_agent.py --agent DDPG --env Pendulum-v1 --seed 1234 --ep 150
+    import gym 
+
+    from rl_algorithms.PyTorch.agents.ddpg import DDPG
+    from rl_algorithms.PyTorch.train_agent import set_seeds, train
+
+    env = gym.make("Pendulum-v1")
+    agent = DDPG(num_actions=env.action_space.shape[0], num_states=env.observation_space.shape[0], min_action=env.action_space.low[0], max_action=env.action_space.high[0])
+    set_seeds(env, seed=1234)
+    train(agent, env, num_episodes=150, filename="ddpg_pendulum_v1_rewards.png")
     ```
 
 # Further information
