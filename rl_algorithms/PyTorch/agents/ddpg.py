@@ -3,9 +3,9 @@ from torch.optim import Adam
 import torch.nn.functional as F
 import numpy as np
 
-from utils.buffer import Buffer
-from utils.noise import OUActionNoise
-from utils.networks import Actor, Critic
+from rl_algorithms.PyTorch.utils.buffer import Buffer
+from rl_algorithms.PyTorch.utils.noise import OUActionNoise
+from rl_algorithms.PyTorch.utils.networks import Actor, Critic
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 

@@ -2,9 +2,10 @@ import numpy as np
 import tensorflow as tf
 import tensorflow.keras as keras
 from tensorflow.keras.optimizers import Adam
-from utils.buffer import Buffer
-from utils.networks import Actor, Critic
-from utils.noise import OUActionNoise
+
+from rl_algorithms.TensorFlow2.utils.buffer import Buffer
+from rl_algorithms.TensorFlow2.utils.networks import Actor, Critic
+from rl_algorithms.TensorFlow2.utils.noise import OUActionNoise
 
 
 class DDPG:

@@ -5,11 +5,11 @@ from argparse import ArgumentParser
 import numpy as np
 import torch
 
-from utils.plots import plot_avg_reward
+from rl_algorithms.PyTorch.utils.plots import plot_avg_reward
 
-from agents.ddpg import DDPG 
-from agents.td3 import TD3
-from agents.sac import SAC
+from rl_algorithms.PyTorch.agents.ddpg import DDPG 
+from rl_algorithms.PyTorch.agents.td3 import TD3
+from rl_algorithms.PyTorch.agents.sac import SAC
 
 
 def set_seeds(seed):

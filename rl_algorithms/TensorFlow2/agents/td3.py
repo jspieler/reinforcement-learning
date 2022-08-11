@@ -1,9 +1,10 @@
 import numpy as np
 import tensorflow as tf
 from tensorflow.keras.optimizers import Adam
-from utils.buffer import Buffer
-from utils.networks import Actor, Critic
-from utils.noise import OUActionNoise, GaussianActionNoise
+
+from rl_algorithms.TensorFlow2.utils.buffer import Buffer
+from rl_algorithms.TensorFlow2.utils.networks import Actor, Critic
+from rl_algorithms.TensorFlow2.utils.noise import OUActionNoise, GaussianActionNoise
 
 
 class TD3:

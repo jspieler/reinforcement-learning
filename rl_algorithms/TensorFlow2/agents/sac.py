@@ -3,8 +3,9 @@ import tensorflow as tf
 import tensorflow.keras as keras
 from tensorflow.keras.optimizers import Adam
 import tensorflow_probability as tfp
-from utils.buffer import Buffer
-from utils.networks import SoftActor, Critic
+
+from rl_algorithms.TensorFlow2.utils.buffer import Buffer
+from rl_algorithms.TensorFlow2.utils.networks import SoftActor, Critic
 
 
 class SAC:

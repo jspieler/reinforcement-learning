@@ -4,8 +4,8 @@ from torch.optim import Adam
 import torch.nn.functional as F
 import numpy as np
 
-from utils.buffer import Buffer
-from utils.networks import SoftActor, Critic
+from rl_algorithms.PyTorch.utils.buffer import Buffer
+from rl_algorithms.PyTorch.utils.networks import SoftActor, Critic
 
 
 class SAC:
