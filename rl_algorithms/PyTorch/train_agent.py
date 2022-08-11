@@ -14,7 +14,7 @@ from rl_algorithms.PyTorch.agents.sac import SAC
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 
-def set_seeds(seed):
+def set_seeds(env, seed):
     os.environ['PYTHONHASHSEED'] = str(seed)
     random.seed(seed)
     torch.manual_seed(seed)
@@ -23,7 +23,7 @@ def set_seeds(seed):
     env.action_space.np_random.seed(seed)
 
 
-def train(agent, env, num_episodes, seed, filename):
+def train(agent, env, num_episodes, filename):
     """Runs the training loop for the agent and the environment.
     
     Args:
@@ -33,8 +33,6 @@ def train(agent, env, num_episodes, seed, filename):
         seed: The random seed.
         filename: The name of the file where the reward plot is saved to.
     """
-    # fix random seed
-    set_seeds(seed)
 
     # store reward of each episode 
     ep_reward_list = []
@@ -91,7 +89,9 @@ if __name__ == '__main__':
     # create the environment
     env = gym.make(params['env'])
 
+    # fix random seeds
     seed = params['seed']
+    set_seeds(env, seed)
 
     num_states = env.observation_space.shape[0]
     num_actions = env.action_space.shape[0]
@@ -112,4 +112,4 @@ if __name__ == '__main__':
         raise NotImplementedError("Algorithm is not implemented!")
 
     # train the agent
-    train(agent, env, num_episodes, seed, filename=params['agent']+'_'+params['env']+'.png')
+    train(agent, env, num_episodes, filename=params['agent']+'_'+params['env']+'.png')
