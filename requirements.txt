@@ -1,5 +1,8 @@
-tensorflow-gpu
-pytorch
-matplotlib
 numpy
+tensorflow-gpu
+tensorflow-probability
+torch
+torchvision
+torchaudio
+matplotlib
 gym

@@ -17,5 +17,5 @@ setuptools.setup(
     },
     license='MIT',
     packages=setuptools.find_packages(),
-    install_requires=['numpy', 'torch', 'torchvision', 'torchaudio', 'tensorflow', 'matplotlib', 'gym'],
+    install_requires=['numpy', 'torch', 'torchvision', 'torchaudio', 'tensorflow', 'tensorflow-probability', 'matplotlib', 'gym'],
 )
