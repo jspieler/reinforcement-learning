@@ -1,0 +1,37 @@
+# DDPG parameters
+DDPG:
+  hidden_size: [400, 300]
+  lr_actor: 0.001
+  lr_critic: 0.002
+  gamma: 0.99
+  tau: 0.005
+  buffer_capacity: 100000
+  batch_size: 64
+  noise_stddev: 0.1
+  
+# TD3 parameters
+TD3:
+  hidden_size: [400, 300]
+  lr_actor: 0.001
+  lr_critic: 0.002
+  gamma: 0.99
+  tau: 0.005
+  buffer_capacity: 100000
+  batch_size: 64
+  noise_stddev: 0.2
+  warmup_steps: 200
+  update_frequency: 2
+
+# SAC parameters
+SAC:
+  hidden_size: [400, 300]
+  lr_actor: 0.0001
+  lr_critic: 0.0001
+  lr_alpha: 0.0001
+  gamma: 0.99
+  tau: 0.005
+  alpha: 0.2
+  target_entropy_tuning: True
+  buffer_capacity: 100000
+  batch_size: 64
+  update_frequency: 2

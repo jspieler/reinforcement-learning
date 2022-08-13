@@ -1,13 +1,14 @@
 import os 
 import random
-import gym
+import yaml
 from argparse import ArgumentParser
+
+import gym
 import numpy as np
 import tensorflow as tf
 
-from rl_algorithms.common.plots import plot_avg_reward
-
 from rl_algorithms.TensorFlow2.agents.agent_factory import AgentFactory
+from rl_algorithms.common.plots import plot_avg_reward
 
 
 def set_seeds(env, seed):
@@ -78,6 +79,7 @@ if __name__ == '__main__':
     parser.add_argument('--env', type=str, default="Pendulum-v1")
     parser.add_argument('--seed', type=int, default=1234)
     parser.add_argument('--ep', type=int, default=150)
+    parser.add_argument('--config', type=str, help="Path to config file", default=None)
 
     args = parser.parse_args()
     params = vars(args)
@@ -89,10 +91,19 @@ if __name__ == '__main__':
     seed = params["seed"]
     set_seeds(env, seed)
 
+    algorithm_name = params["agent"]
     num_episodes = params["ep"]
 
-    # create the agent
-    agent = AgentFactory.get_agent(params["agent"], env)
+    # load config if provided
+    if args.config:
+        with open(args.config, "r") as f:
+            config = yaml.load(f, Loader=yaml.Loader)
+            agent_params = config[algorithm_name]
+    else:
+        agent_params = None
+
+    # create agent
+    agent = AgentFactory.get_agent(algorithm_name, env, params=agent_params)
 
     # train the agent
     train(agent, env, num_episodes, filename=params["agent"]+"_"+params["env"]+".png")
