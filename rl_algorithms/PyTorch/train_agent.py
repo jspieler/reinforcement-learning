@@ -7,9 +7,7 @@ import torch
 
 from rl_algorithms.common.plots import plot_avg_reward
 
-from rl_algorithms.PyTorch.agents.ddpg import DDPG 
-from rl_algorithms.PyTorch.agents.td3 import TD3
-from rl_algorithms.PyTorch.agents.sac import SAC
+from rl_algorithms.PyTorch.agents.agent_factory import AgentFactory
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
@@ -78,8 +76,8 @@ if __name__ == '__main__':
 
     # parse arguments
     parser = ArgumentParser()
-    parser.add_argument('--agent', type=str, default='DDPG')
-    parser.add_argument('--env', type=str, default='Pendulum-v1')
+    parser.add_argument('--agent', type=str, default="DDPG")
+    parser.add_argument('--env', type=str, default="Pendulum-v1")
     parser.add_argument('--seed', type=int, default=1234)
     parser.add_argument('--ep', type=int, default=150)
 
@@ -87,29 +85,16 @@ if __name__ == '__main__':
     params = vars(args)
 
     # create the environment
-    env = gym.make(params['env'])
+    env = gym.make(params["env"])
 
     # fix random seeds
-    seed = params['seed']
+    seed = params["seed"]
     set_seeds(env, seed)
 
-    num_states = env.observation_space.shape[0]
-    num_actions = env.action_space.shape[0]
-
-    upper_bound = env.action_space.high[0]
-    lower_bound = env.action_space.low[0]
-
-    num_episodes = params['ep']
+    num_episodes = params["ep"]
 
     # create the agent
-    if params['agent'] == 'DDPG':
-        agent = DDPG(num_actions, num_states, lower_bound, upper_bound)
-    elif params['agent'] == 'TD3':
-        agent = TD3(num_actions, num_states, lower_bound, upper_bound)
-    elif params['agent'] == 'SAC':
-        agent = SAC(num_actions, num_states, lower_bound, upper_bound, env.action_space)
-    else:
-        raise NotImplementedError("Algorithm is not implemented!")
+    agent = AgentFactory.get_agent(params["agent"], env)
 
     # train the agent
-    train(agent, env, num_episodes, filename=params['agent']+'_'+params['env']+'.png')
+    train(agent, env, num_episodes, filename=params["agent"]+"_"+params["env"]+".png")
