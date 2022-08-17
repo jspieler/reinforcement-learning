@@ -9,6 +9,7 @@ This repository contains minimalistic implementations of several (Deep) Reinforc
 - [SAC](#sac)
 
 ## Planned
+- [MPO](#mpo)
 - [Hybrid-MPO](#hybrid-mpo)
 - [WD3](https://arxiv.org/pdf/2006.12622.pdf) / [AWD3](https://arxiv.org/pdf/2111.06780.pdf)
 
@@ -17,11 +18,14 @@ This repository contains minimalistic implementations of several (Deep) Reinforc
     ```
     pip install git+https://github.com/jspieler/reinforcement-learning.git
     ```
-2. Run algorithms for `OpenAI gym` environments, e.g. DDPG on `Pendulum-v1` for 150 episodes:
+
+2. Run algorithms for `OpenAI gym` environments, e.g. DDPG on the `Pendulum-v1` environment for 150 episodes using PyTorch:
     ```
     python rl_algorithms/PyTorch/train_agent.py --agent DDPG --env Pendulum-v1 --seed 1234 --ep 150
     ```
-3. Alternatively, here is a quick example of how to train DDPG on the `Pendulum-v1`environment using PyTorch:
+    If you want to use custom parameters for the algorithm instead of the default one, you can add the argument `--config /path/to/config.yaml`. See `config.yaml` for an example.
+
+3. Alternatively, here is a quick example of how to train DDPG on the `Pendulum-v1` environment using PyTorch:
     ```
     import gym 
 
@@ -62,6 +66,15 @@ This repository contains minimalistic implementations of several (Deep) Reinforc
 **Method:** Off-Policy / Temporal-Difference / Actor-Critic / Model-Free<br>
 **Action space:** Continuous <br>
 **Implementation:** [PyTorch](https://github.com/jspieler/reinforcement-learning/blob/main/PyTorch/agents/sac.py) / [TensorFlow2](https://github.com/jspieler/reinforcement-learning/blob/main/TensorFlow2/agents/sac.py)
+
+<hr>
+
+<a name='mpo'></a>
+## Maximum a Posteriori Policy Optimisation (MPO)
+**Paper:** [Maximum a Posteriori Policy Optimisation](https://arxiv.org/pdf/1806.06920.pdf)<br>
+**Method:** Off-Policy / Temporal-Difference / Actor-Critic / Model-Free<br>
+**Action space:** Continuous & Discrete <br>
+**Implementation:** not yet implemented
 
 <hr>
 
