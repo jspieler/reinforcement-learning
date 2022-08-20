@@ -3,29 +3,44 @@ import tensorflow as tf
 import tensorflow.keras as keras
 from tensorflow.keras.optimizers import Adam
 
+from rl_algorithms.common.env_utils import get_env_params
 from rl_algorithms.TensorFlow2.utils.buffer import Buffer
 from rl_algorithms.TensorFlow2.utils.networks import Actor, Critic
 from rl_algorithms.TensorFlow2.utils.noise import OUActionNoise
 
 
 class DDPG:
-    def __init__(self, num_actions, num_states, min_action, max_action, lr_actor=0.001,
-                 lr_critic=0.002, gamma=0.99, buffer_capacity=100000, tau=0.005,
-                 hidden_size=(512,512), batch_size=64, noise_stddev=0.1):
+    def __init__(
+        self,
+        env,
+        lr_actor=0.001,
+        lr_critic=0.002,
+        gamma=0.99,
+        buffer_capacity=100000,
+        tau=0.005,
+        hidden_size=(512, 512),
+        batch_size=64,
+        noise_stddev=0.1,
+    ):
+        env_params = get_env_params(env)
+        self.num_actions, self.num_states, self.min_action, self.max_action = map(
+            env_params.get, ("num_actions", "num_states", "lower_bound", "upper_bound")
+        )
         self.gamma = gamma
         self.tau = tau
-        self.memory = Buffer(num_actions, num_states, buffer_capacity, batch_size)
+        self.memory = Buffer(
+            self.num_actions, self.num_states, buffer_capacity, batch_size
+        )
         self.batch_size = batch_size
-        self.num_actions = num_actions
-        self.num_states = num_states
-        self.min_action = min_action
-        self.max_action = max_action
-        self.noise = OUActionNoise(mean=np.zeros(num_actions), std_deviation=float(noise_stddev) * np.ones(num_actions))
+        self.noise = OUActionNoise(
+            mean=np.zeros(self.num_actions),
+            std_deviation=float(noise_stddev) * np.ones(self.num_actions),
+        )
 
-        self.actor = Actor(num_actions, hidden_size)
+        self.actor = Actor(self.num_actions, hidden_size)
         self.critic = Critic(hidden_size)
-        self.target_actor = Actor(num_actions, hidden_size, name='target_actor')
-        self.target_critic = Critic(hidden_size, name='target_critic')
+        self.target_actor = Actor(self.num_actions, hidden_size, name="target_actor")
+        self.target_critic = Critic(hidden_size, name="target_critic")
 
         self.actor_optimizer = Adam(learning_rate=lr_actor)
         self.critic_optimizer = Adam(learning_rate=lr_critic)
@@ -44,13 +59,13 @@ class DDPG:
         weights = []
         targets = self.target_actor.weights
         for i, weight in enumerate(self.actor.weights):
-            weights.append(weight * tau + targets[i]*(1-tau))
+            weights.append(weight * tau + targets[i] * (1 - tau))
         self.target_actor.set_weights(weights)
 
         weights = []
         targets = self.target_critic.weights
         for i, weight in enumerate(self.critic.weights):
-            weights.append(weight * tau + targets[i]*(1-tau))
+            weights.append(weight * tau + targets[i] * (1 - tau))
         self.target_critic.set_weights(weights)
 
     def save_models(self):
@@ -78,11 +93,17 @@ class DDPG:
         return actions
 
     @tf.function
-    def update(self, state_batch, action_batch, reward_batch, next_state_batch, done_batch):
+    def update(
+        self, state_batch, action_batch, reward_batch, next_state_batch, done_batch
+    ):
         # Training and updating Actor & Critic networks.
         with tf.GradientTape() as tape:
-            target_actions = self.target_actor(next_state_batch, self.max_action, training=True)
-            y = reward_batch + self.gamma * self.target_critic(next_state_batch, target_actions, training=True) * (1 - done_batch)
+            target_actions = self.target_actor(
+                next_state_batch, self.max_action, training=True
+            )
+            y = reward_batch + self.gamma * self.target_critic(
+                next_state_batch, target_actions, training=True
+            ) * (1 - done_batch)
             critic_value = self.critic(state_batch, action_batch, training=True)
             critic_loss = tf.math.reduce_mean(tf.math.square(y - critic_value))
 
@@ -106,8 +127,16 @@ class DDPG:
         if self.memory.buffer_counter < self.batch_size:
             return
 
-        state_batch, action_batch, reward_batch, next_state_batch, done_batch = self.memory.sample()
+        (
+            state_batch,
+            action_batch,
+            reward_batch,
+            next_state_batch,
+            done_batch,
+        ) = self.memory.sample()
 
-        self.update(state_batch, action_batch, reward_batch, next_state_batch, done_batch)
+        self.update(
+            state_batch, action_batch, reward_batch, next_state_batch, done_batch
+        )
 
         self.update_network_parameters()

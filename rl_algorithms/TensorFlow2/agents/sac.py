@@ -4,40 +4,61 @@ import tensorflow.keras as keras
 from tensorflow.keras.optimizers import Adam
 import tensorflow_probability as tfp
 
+from rl_algorithms.common.env_utils import get_env_params
 from rl_algorithms.TensorFlow2.utils.buffer import Buffer
 from rl_algorithms.TensorFlow2.utils.networks import SoftActor, Critic
 
 
 class SAC:
-    def __init__(self, num_actions, num_states, min_action, max_action, action_space=None, 
-                 lr_actor=3e-4, lr_critic=3e-4, lr_alpha=3e-4, gamma=0.99, buffer_capacity=100000, 
-                 tau=0.005, hidden_size=(512,512), batch_size=64, alpha=0.2, target_entropy_tuning=True, 
-                 update_frequency=2):
+    def __init__(
+        self,
+        env,
+        lr_actor=3e-4,
+        lr_critic=3e-4,
+        lr_alpha=3e-4,
+        gamma=0.99,
+        buffer_capacity=100000,
+        tau=0.005,
+        hidden_size=(512, 512),
+        batch_size=64,
+        alpha=0.2,
+        target_entropy_tuning=True,
+        update_frequency=2,
+    ):
+        env_params = get_env_params(env)
+        (
+            self.num_actions,
+            self.num_states,
+            self.min_action,
+            self.max_action,
+            self.action_space,
+        ) = map(
+            env_params.get,
+            ("num_actions", "num_states", "lower_bound", "upper_bound", "action_space"),
+        )
         self.gamma = gamma
         self.tau = tau
-        self.memory = Buffer(num_actions, num_states, buffer_capacity, batch_size)
+        self.memory = Buffer(
+            self.num_actions, self.num_states, buffer_capacity, batch_size
+        )
         self.batch_size = batch_size
-        self.num_actions = num_actions
-        self.num_states = num_states
-        self.min_action = min_action
-        self.max_action = max_action
         self.trainstep = 0
         self.update_frequency = update_frequency
 
-        self.alpha = alpha 
+        self.alpha = alpha
         self.target_entropy_tuning = target_entropy_tuning
         self.alpha_optimizer = Adam(learning_rate=lr_alpha)
 
         if self.target_entropy_tuning:
             self.log_alpha = tf.Variable(0.0)
             self.alpha = tfp.util.DeferredTensor(self.log_alpha, tf.exp)
-            self.target_entropy = - tf.Variable(num_actions, dtype=tf.float32)
+            self.target_entropy = -tf.Variable(self.num_actions, dtype=tf.float32)
 
-        self.actor = SoftActor(num_actions, action_space, hidden_size)
+        self.actor = SoftActor(self.num_actions, self.action_space, hidden_size)
         self.critic = Critic(hidden_size)
-        self.critic2 = Critic(hidden_size, name='critic2')
-        self.target_critic = Critic(hidden_size, name='target_critic')
-        self.target_critic2 = Critic(hidden_size, name='target_critic2')
+        self.critic2 = Critic(hidden_size, name="critic2")
+        self.target_critic = Critic(hidden_size, name="target_critic")
+        self.target_critic2 = Critic(hidden_size, name="target_critic2")
 
         self.actor_optimizer = Adam(learning_rate=lr_actor)
         self.critic_optimizer = Adam(learning_rate=lr_critic)
@@ -56,13 +77,13 @@ class SAC:
         weights = []
         targets = self.target_critic.weights
         for i, weight in enumerate(self.critic.weights):
-            weights.append(weight * tau + targets[i]*(1-tau))
+            weights.append(weight * tau + targets[i] * (1 - tau))
         self.target_critic.set_weights(weights)
 
         weights = []
         targets = self.target_critic2.weights
         for i, weight in enumerate(self.critic2.weights):
-            weights.append(weight * tau + targets[i]*(1-tau))
+            weights.append(weight * tau + targets[i] * (1 - tau))
         self.target_critic2.set_weights(weights)
 
     def save_models(self):
@@ -84,27 +105,48 @@ class SAC:
             action, _, _ = self.actor(state)
         else:
             _, _, action = self.actor(state)
-        
+
         return action.numpy()[0]
 
     # @tf.function # with decoration code is not running bc. networks are not built?
-    def update(self, state_batch, action_batch, reward_batch, next_state_batch, done_batch):
+    def update(
+        self, state_batch, action_batch, reward_batch, next_state_batch, done_batch
+    ):
         # update critic
         with tf.GradientTape() as tape1, tf.GradientTape() as tape2:
-            target_actions, target_log_pi, _ = self.actor(next_state_batch, training=True)
-            target_next_state_values = self.target_critic(next_state_batch, target_actions, training=True)
-            target_next_state_values2 = self.target_critic2(next_state_batch, target_actions, training=True)
-            next_state_target_value = tf.math.minimum(target_next_state_values, target_next_state_values2) - self.alpha * target_log_pi
-            target_values = reward_batch + self.gamma * next_state_target_value * (1 - done_batch)
+            target_actions, target_log_pi, _ = self.actor(
+                next_state_batch, training=True
+            )
+            target_next_state_values = self.target_critic(
+                next_state_batch, target_actions, training=True
+            )
+            target_next_state_values2 = self.target_critic2(
+                next_state_batch, target_actions, training=True
+            )
+            next_state_target_value = (
+                tf.math.minimum(target_next_state_values, target_next_state_values2)
+                - self.alpha * target_log_pi
+            )
+            target_values = reward_batch + self.gamma * next_state_target_value * (
+                1 - done_batch
+            )
 
             critic_value = self.critic(state_batch, action_batch, training=True)
             critic_value2 = self.critic2(state_batch, action_batch, training=True)
 
-            next_state_target_value = tf.math.minimum(target_next_state_values, target_next_state_values2)
+            next_state_target_value = tf.math.minimum(
+                target_next_state_values, target_next_state_values2
+            )
 
-            target_values = reward_batch + self.gamma * next_state_target_value * (1 - done_batch)
-            critic_loss = tf.math.reduce_mean(tf.math.square(target_values - critic_value))
-            critic_loss2 = tf.math.reduce_mean(tf.math.square(target_values - critic_value2))
+            target_values = reward_batch + self.gamma * next_state_target_value * (
+                1 - done_batch
+            )
+            critic_loss = tf.math.reduce_mean(
+                tf.math.square(target_values - critic_value)
+            )
+            critic_loss2 = tf.math.reduce_mean(
+                tf.math.square(target_values - critic_value2)
+            )
 
         critic_grad1 = tape1.gradient(critic_loss, self.critic.trainable_variables)
         critic_grad2 = tape2.gradient(critic_loss2, self.critic2.trainable_variables)
@@ -128,17 +170,17 @@ class SAC:
             self.actor_optimizer.apply_gradients(
                 zip(actor_grad, self.actor.trainable_variables)
             )
-        
-        # update alpha  
+
+        # update alpha
         if self.target_entropy_tuning:
             with tf.GradientTape() as tape4:
-                alpha_loss = - tf.math.reduce_mean(self.log_alpha * tf.stop_gradient(log_pi + self.target_entropy))
+                alpha_loss = -tf.math.reduce_mean(
+                    self.log_alpha * tf.stop_gradient(log_pi + self.target_entropy)
+                )
 
             alpha_grad = tape4.gradient(alpha_loss, [self.log_alpha])
-            self.alpha_optimizer.apply_gradients(
-                zip(alpha_grad, [self.log_alpha])
-            )
-        
+            self.alpha_optimizer.apply_gradients(zip(alpha_grad, [self.log_alpha]))
+
         self.trainstep += 1
 
         if self.trainstep % self.update_frequency == 0:
@@ -148,6 +190,14 @@ class SAC:
         if self.memory.buffer_counter < self.batch_size:
             return
 
-        state_batch, action_batch, reward_batch, next_state_batch, done_batch = self.memory.sample()
+        (
+            state_batch,
+            action_batch,
+            reward_batch,
+            next_state_batch,
+            done_batch,
+        ) = self.memory.sample()
 
-        self.update(state_batch, action_batch, reward_batch, next_state_batch, done_batch)
+        self.update(
+            state_batch, action_batch, reward_batch, next_state_batch, done_batch
+        )
