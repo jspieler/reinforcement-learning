@@ -7,7 +7,7 @@ import gym
 import numpy as np
 import tensorflow as tf
 
-from rl_algorithms.TensorFlow2.agents.agent_factory import AgentFactory
+from rl_algorithms.TensorFlow2.agents import AgentFactory
 from rl_algorithms.common.plots import plot_avg_reward
 
 

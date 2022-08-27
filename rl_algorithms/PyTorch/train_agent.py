@@ -7,7 +7,7 @@ import gym
 import numpy as np
 import torch
 
-from rl_algorithms.PyTorch.agents.agent_factory import AgentFactory
+from rl_algorithms.PyTorch.agents import AgentFactory
 from rl_algorithms.common.plots import plot_avg_reward
 
 
