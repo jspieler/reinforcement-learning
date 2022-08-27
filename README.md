@@ -29,11 +29,11 @@ This repository contains minimalistic implementations of several (Deep) Reinforc
     ```
     import gym 
 
-    from rl_algorithms.PyTorch.agents.ddpg import DDPG
+    from rl_algorithms.PyTorch.agents import DDPG
     from rl_algorithms.PyTorch.train_agent import set_seeds, train
 
     env = gym.make("Pendulum-v1")
-    agent = DDPG(num_actions=env.action_space.shape[0], num_states=env.observation_space.shape[0], min_action=env.action_space.low[0], max_action=env.action_space.high[0])
+    agent = DDPG(env)
     set_seeds(env, seed=1234)
     train(agent, env, num_episodes=150, filename="ddpg_pendulum_v1_rewards.png")
     ```
