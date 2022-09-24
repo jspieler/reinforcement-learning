@@ -6,6 +6,7 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 
 class Buffer:
+    """Replay Buffer."""
     def __init__(self, num_actions, num_states, buffer_capacity=100000, batch_size=64):
         self.buffer_capacity = buffer_capacity
         self.batch_size = batch_size
@@ -19,6 +20,7 @@ class Buffer:
         self.done_buffer = np.zeros((self.buffer_capacity, 1))
 
     def record(self, obs_tuple):
+        """Adds a sample to the replay buffer."""
         # Replace old samples if buffer capacity is exceeded
         index = self.buffer_counter % self.buffer_capacity
 
@@ -31,6 +33,7 @@ class Buffer:
         self.buffer_counter += 1
 
     def sample(self):
+        """Samples a batch from the replay buffer."""
         # Randomly sample batch
         record_range = min(self.buffer_counter, self.buffer_capacity)
         batch_indices = np.random.choice(record_range, self.batch_size)

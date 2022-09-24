@@ -12,6 +12,23 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
 class DDPG:
+    """Deep Deterministic Policy Gradient (DDPG).
+
+    Paper: https://arxiv.org/pdf/1509.02971.pdf
+
+    Args:
+        env: The environment to learn from.
+        lr_actor: The learning rate of the actor.
+        lr_critic: The learning rate of the critic.
+        gamma: The discount factor.
+        buffer_capacity: The size of the replay buffer.
+        tau: The soft update coefficient.
+        hidden_size: The number of neurons in the hidden layers of the actor and critic networks.
+        batch_size: The minibatch size for each gradient update.
+        noise_stddev: The standard deviation of the exploration noise.
+
+    """
+
     def __init__(
         self,
         env,
@@ -52,7 +69,15 @@ class DDPG:
 
         self.update_network_parameters(tau=1)
 
-    def update_network_parameters(self, tau=None):
+    def update_network_parameters(self, tau=None) -> None:
+        """Updates the parameters of the target networks.
+
+        The parameters of the target actor and target critic networks are (slowly)
+        updated based on the actor and critic parameters to improve learning stability.
+
+        Args:
+            tau: The soft update coefficient indicating how "fast" the target networks are updated.
+        """
         if tau is None:
             tau = self.tau
 
@@ -66,13 +91,15 @@ class DDPG:
         ):
             target_param.data.copy_(param.data * tau + target_param.data * (1.0 - tau))
 
-    def save_models(self):
+    def save_models(self) -> None:
+        """Saves all networks."""
         torch.save(self.actor.state_dict(), self.actor.checkpoint_file)
         torch.save(self.critic.state_dict(), self.critic.checkpoint_file)
         torch.save(self.target_actor.state_dict(), self.target_actor.checkpoint_file)
         torch.save(self.target_critic.state_dict(), self.target_critic.checkpoint_file)
 
-    def load_models(self):
+    def load_models(self) -> None:
+        """Loads all networks."""
         self.actor.load_state_dict(torch.load(self.actor.checkpoint_file))
         self.critic.load_state_dict(torch.load(self.critic.checkpoint_file))
         self.target_actor.load_state_dict(torch.load(self.target_actor.checkpoint_file))
@@ -81,6 +108,12 @@ class DDPG:
         )
 
     def choose_action(self, state, evaluate=False):
+        """Selects an action based on the current state.
+
+        Args:
+            state: The current state.
+            evaluate: A boolean indicating whether exploration noise is applied or not.
+        """
         mu = self.actor(state.to(device), self.max_action)
         mu = mu.data
 
@@ -94,8 +127,8 @@ class DDPG:
 
     def update(
         self, state_batch, action_batch, reward_batch, next_state_batch, done_batch
-    ):
-        # Training and updating Actor & Critic networks.
+    ) -> None:
+        """Trains and updates Actor & Critic networks."""
         target_actions = self.target_actor.forward(next_state_batch, self.max_action)
         y = reward_batch + self.gamma * self.target_critic.forward(
             next_state_batch, target_actions
@@ -115,7 +148,11 @@ class DDPG:
         actor_loss.backward()
         self.actor_optimizer.step()
 
-    def learn(self):
+    def learn(self) -> None:
+        """Performs a learning step.
+        
+        Samples from replay buffer and updates networks.
+        """
         (
             state_batch,
             action_batch,

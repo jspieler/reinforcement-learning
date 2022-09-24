@@ -12,6 +12,25 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
 class TD3:
+    """Twin-Delayed Deep Deterministic Policy Gradient (TD3).
+
+    Paper: https://arxiv.org/pdf/1802.09477.pdf
+
+    Args:
+        env: The environment to learn from.
+        lr_actor: The learning rate of the actor.
+        lr_critic: The learning rate of the critic.
+        gamma: The discount factor.
+        buffer_capacity: The size of the replay buffer.
+        tau: The soft update coefficient.
+        hidden_size: The number of neurons in the hidden layers of the actor and critic networks.
+        batch_size: The minibatch size for each gradient update.
+        noise_stddev: The standard deviation of the exploration noise.
+        warmup_steps: The number of environment steps after which the agents starts to learn.
+        update_frequency: The update frequency of the network parameters.
+
+    """
+
     def __init__(
         self,
         env,
@@ -65,7 +84,15 @@ class TD3:
 
         self.update_network_parameters(tau=1.0)
 
-    def update_network_parameters(self, tau=None):
+    def update_network_parameters(self, tau=None) -> None:
+        """Updates the parameters of the target networks.
+
+        The parameters of the target actor and target critic networks are (slowly)
+        updated based on the actor and critic parameters to improve learning stability.
+
+        Args:
+            tau: The soft update coefficient indicating how "fast" the target networks are updated.
+        """
         if tau is None:
             tau = self.tau
 
@@ -84,7 +111,8 @@ class TD3:
         ):
             target_param.data.copy_(param.data * tau + target_param.data * (1.0 - tau))
 
-    def save_models(self):
+    def save_models(self) -> None:
+        """Saves all networks."""
         torch.save(self.actor.state_dict(), self.actor.checkpoint_file)
         torch.save(self.critic.state_dict(), self.critic.checkpoint_file)
         torch.save(self.critic2.state_dict(), self.critic2.checkpoint_file)
@@ -94,7 +122,8 @@ class TD3:
             self.target_critic2.state_dict(), self.target_critic2.checkpoint_file
         )
 
-    def load_models(self):
+    def load_models(self) -> None:
+        """Loads all networks."""
         self.actor.load_state_dict(torch.load(self.actor.checkpoint_file))
         self.critic.load_state_dict(torch.load(self.critic.checkpoint_file))
         self.critic2.load_state_dict(torch.load(self.critic2.checkpoint_file))
@@ -107,6 +136,12 @@ class TD3:
         )
 
     def choose_action(self, state, evaluate=False):
+        """Selects an action based on the current state.
+
+        Args:
+            state: The current state.
+            evaluate: A boolean indicating whether exploration noise is applied or not.
+        """
         if self.trainstep > self.warmup_steps:
             evaluate = True
 
@@ -123,8 +158,8 @@ class TD3:
 
     def update(
         self, state_batch, action_batch, reward_batch, next_state_batch, done_batch
-    ):
-        # Training and updating Actor & Critic networks.
+    ) -> None:
+        """Trains and updates Actor & Critic networks."""
         target_actions = self.target_actor.forward(next_state_batch, self.max_action)
         target_actions += torch.clamp(
             torch.normal(
@@ -173,7 +208,11 @@ class TD3:
             actor_loss.backward()
             self.actor_optimizer.step()
 
-    def learn(self):
+    def learn(self) -> None:
+        """Performs a learning step.
+
+        Samples from replay buffer and updates networks.
+        """
         if self.memory.buffer_counter < self.batch_size:
             return
 

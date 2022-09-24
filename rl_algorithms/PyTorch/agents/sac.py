@@ -1,8 +1,6 @@
-from webbrowser import get
 import torch
 from torch.optim import Adam
 import torch.nn.functional as F
-import numpy as np
 
 from rl_algorithms.common.env_utils import get_env_params
 from rl_algorithms.PyTorch.utils.buffer import Buffer
@@ -10,6 +8,28 @@ from rl_algorithms.PyTorch.utils.networks import SoftActor, Critic
 
 
 class SAC:
+    """Soft Actor-Critic (SAC).
+
+    Paper:
+        https://arxiv.org/pdf/1801.01290.pdf
+        https://arxiv.org/pdf/1801.01290.pdf
+
+    Args:
+        env: The environment to learn from.
+        lr_actor: The learning rate of the actor.
+        lr_critic: The learning rate of the critic.
+        lr_alpha: The learning rate for tuning of the entropy regularization coefficient.
+        gamma: The discount factor.
+        buffer_capacity: The size of the replay buffer.
+        tau: The soft update coefficient.
+        alpha: The starting value of the entropy regularization coefficient.
+        hidden_size: The number of neurons in the hidden layers of the actor and critic networks.
+        batch_size: The minibatch size for each gradient update.
+        update_frequency: The update frequency of the network parameters.
+        target_entropy_tuning: A boolean indicating whether the entropy coefficient is learnt or not.
+
+    """
+
     def __init__(
         self,
         env,
@@ -77,7 +97,15 @@ class SAC:
             self.log_alpha = torch.zeros(1, requires_grad=True, device=self.device)
             self.alpha_optimizer = Adam([self.log_alpha], lr_alpha)
 
-    def update_network_parameters(self, tau=None):
+    def update_network_parameters(self, tau=None) -> None:
+        """Updates the parameters of the target networks.
+
+        The parameters of the target actor and target critic networks are (slowly)
+        updated based on the actor and critic parameters to improve learning stability.
+
+        Args:
+            tau: The soft update coefficient indicating how "fast" the target networks are updated.
+        """
         if tau is None:
             tau = self.tau
 
@@ -91,7 +119,8 @@ class SAC:
         ):
             target_param.data.copy_(param.data * tau + target_param.data * (1.0 - tau))
 
-    def save_models(self):
+    def save_models(self) -> None:
+        """Saves all networks."""
         torch.save(self.actor.state_dict(), self.actor.checkpoint_file)
         torch.save(self.critic.state_dict(), self.critic.checkpoint_file)
         torch.save(self.critic2.state_dict(), self.critic2.checkpoint_file)
@@ -100,7 +129,8 @@ class SAC:
             self.target_critic2.state_dict(), self.target_critic2.checkpoint_file
         )
 
-    def load_models(self):
+    def load_models(self) -> None:
+        """Loads all networks."""
         self.actor.load_state_dict(torch.load(self.actor.checkpoint_file))
         self.critic.load_state_dict(torch.load(self.critic.checkpoint_file))
         self.critic2.load_state_dict(torch.load(self.critic2.checkpoint_file))
@@ -112,6 +142,12 @@ class SAC:
         )
 
     def choose_action(self, state, evaluate=False):
+        """Selects an action based on the current state.
+
+        Args:
+            state: The current state.
+            evaluate: A boolean indicating whether exploration noise is applied or not.
+        """
         state = torch.FloatTensor(state).to(self.device).unsqueeze(0)
         if evaluate is False:
             action, _, _ = self.actor.sample(state)
@@ -122,7 +158,8 @@ class SAC:
 
     def update(
         self, state_batch, action_batch, reward_batch, next_state_batch, done_batch
-    ):
+    ) -> None:
+        """Trains and updates Actor & Critic networks."""
         target_actions, target_log_pi, _ = self.actor.sample(next_state_batch)
         target_next_state_values = self.target_critic.forward(
             next_state_batch, target_actions
@@ -175,7 +212,11 @@ class SAC:
         if self.trainstep % self.update_frequency == 0:
             self.update_network_parameters()
 
-    def learn(self):
+    def learn(self) -> None:
+        """Performs a learning step.
+
+        Samples from replay buffer and updates networks.
+        """
         if self.memory.buffer_counter < self.batch_size:
             return
 

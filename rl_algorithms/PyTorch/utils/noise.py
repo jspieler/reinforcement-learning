@@ -2,6 +2,15 @@ import numpy as np
 
 
 class OUActionNoise:
+    """Ornstein Uhlenbeck action noise.
+    
+    Args:
+        mean: The mean value of the noise.
+        std_deviation: The standard deviation of the noise.
+        theta: The rate of the mean reversion.
+        dt: The timestep of the noise.
+        x_initial: The initial value for the noise (if None: zero).
+    """
     def __init__(self, mean, std_deviation, theta=0.15, dt=1e-2, x_initial=None):
         self.theta = theta
         self.mean = mean
@@ -27,6 +36,12 @@ class OUActionNoise:
 
 
 class GaussianActionNoise:
+    """Gaussian action noise.
+    
+    Args:
+        mean: The mean value of the noise.
+        std_deviation: The standard deviation of the noise.
+    """
     def __init__(self, mean, std_deviation):
         self.mean = mean
         self.std_dev = std_deviation

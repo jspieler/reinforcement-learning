@@ -14,7 +14,13 @@ from rl_algorithms.common.plots import plot_avg_reward
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 
-def set_seeds(env, seed):
+def set_seeds(env: gym.Env, seed: int) -> None:
+    """Sets the random seeds.
+    
+    Args:
+        env: The environment to set the seed for.
+        seed: The random seed to use.
+    """
     os.environ['PYTHONHASHSEED'] = str(seed)
     random.seed(seed)
     torch.manual_seed(seed)
@@ -23,14 +29,14 @@ def set_seeds(env, seed):
     env.action_space.np_random.seed(seed)
 
 
-def train(agent, env, num_episodes, filename):
+def train(agent, env, num_episodes: int, filename: str) -> None:
     """Runs the training loop for the agent and the environment.
     
     Args:
         agent: An agent object.
         env: An environment object.
         num_episodes: The number of training episodes.
-        filename: The name of the file where the reward plot is saved to.
+        filename: The name of the file to which the reward plot is saved to.
     """
 
     # store reward of each episode 
