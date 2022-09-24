@@ -3,6 +3,8 @@ import tensorflow as tf
 
 
 class Buffer:
+    """Replay Buffer."""
+
     def __init__(self, num_actions, num_states, buffer_capacity=100000, batch_size=64):
         self.buffer_capacity = buffer_capacity
         self.batch_size = batch_size
@@ -15,7 +17,8 @@ class Buffer:
         self.next_state_buffer = np.zeros((self.buffer_capacity, num_states))
         self.done_buffer = np.zeros((self.buffer_capacity, 1))
 
-    def record(self, obs_tuple):
+    def record(self, obs_tuple) -> None:
+        """Adds a sample to the replay buffer."""
         # Replace old samples if buffer capacity is exceeded
         index = self.buffer_counter % self.buffer_capacity
 
@@ -28,15 +31,26 @@ class Buffer:
         self.buffer_counter += 1
 
     def sample(self):
+        """Samples a batch from the replay buffer."""
         # Randomly sample batch
         record_range = min(self.buffer_counter, self.buffer_capacity)
         batch_indices = np.random.choice(record_range, self.batch_size)
 
         # Convert to tensors
-        state_batch = tf.convert_to_tensor(self.state_buffer[batch_indices], dtype=tf.float32)
-        action_batch = tf.convert_to_tensor(self.action_buffer[batch_indices], dtype=tf.float32)
-        reward_batch = tf.convert_to_tensor(self.reward_buffer[batch_indices], dtype=tf.float32)
-        next_state_batch = tf.convert_to_tensor(self.next_state_buffer[batch_indices], dtype=tf.float32)
-        done_batch = tf.convert_to_tensor(self.done_buffer[batch_indices], dtype=tf.float32)
+        state_batch = tf.convert_to_tensor(
+            self.state_buffer[batch_indices], dtype=tf.float32
+        )
+        action_batch = tf.convert_to_tensor(
+            self.action_buffer[batch_indices], dtype=tf.float32
+        )
+        reward_batch = tf.convert_to_tensor(
+            self.reward_buffer[batch_indices], dtype=tf.float32
+        )
+        next_state_batch = tf.convert_to_tensor(
+            self.next_state_buffer[batch_indices], dtype=tf.float32
+        )
+        done_batch = tf.convert_to_tensor(
+            self.done_buffer[batch_indices], dtype=tf.float32
+        )
 
         return state_batch, action_batch, reward_batch, next_state_batch, done_batch

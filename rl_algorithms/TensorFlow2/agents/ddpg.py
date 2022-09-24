@@ -10,6 +10,23 @@ from rl_algorithms.TensorFlow2.utils.noise import OUActionNoise
 
 
 class DDPG:
+    """Deep Deterministic Policy Gradient (DDPG).
+
+    Paper: https://arxiv.org/pdf/1509.02971.pdf
+
+    Args:
+        env: The environment to learn from.
+        lr_actor: The learning rate of the actor.
+        lr_critic: The learning rate of the critic.
+        gamma: The discount factor.
+        buffer_capacity: The size of the replay buffer.
+        tau: The soft update coefficient.
+        hidden_size: The number of neurons in the hidden layers of the actor and critic networks.
+        batch_size: The minibatch size for each gradient update.
+        noise_stddev: The standard deviation of the exploration noise.
+
+    """
+
     def __init__(
         self,
         env,
@@ -52,7 +69,15 @@ class DDPG:
 
         self.update_network_parameters(tau=1)
 
-    def update_network_parameters(self, tau=None):
+    def update_network_parameters(self, tau=None) -> None:
+        """Updates the parameters of the target networks.
+
+        The parameters of the target actor and target critic networks are (slowly)
+        updated based on the actor and critic parameters to improve learning stability.
+
+        Args:
+            tau: The soft update coefficient indicating how "fast" the target networks are updated.
+        """
         if tau is None:
             tau = self.tau
 
@@ -68,19 +93,27 @@ class DDPG:
             weights.append(weight * tau + targets[i] * (1 - tau))
         self.target_critic.set_weights(weights)
 
-    def save_models(self):
+    def save_models(self) -> None:
+        """Saves all networks."""
         self.actor.save_weights(self.actor.checkpoint_file)
         self.target_actor.save_weights(self.target_actor.checkpoint_file)
         self.critic.save_weights(self.critic.checkpoint_file)
         self.target_critic.save_weights(self.target_critic.checkpoint_file)
 
-    def load_models(self):
+    def load_models(self) -> None:
+        """Loads all networks."""
         self.actor.load_weights(self.actor.checkpoint_file)
         self.target_actor.load_weights(self.target_actor.checkpoint_file)
         self.critic.load_weights(self.critic.checkpoint_file)
         self.target_critic.load_weights(self.target_critic.checkpoint_file)
 
     def choose_action(self, state, evaluate=False):
+        """Selects an action based on the current state.
+
+        Args:
+            state: The current state.
+            evaluate: A boolean indicating whether exploration noise is applied or not.
+        """
         sampled_actions = tf.squeeze(self.actor(state, self.max_action))
         if not evaluate:
             noise = self.noise()
@@ -95,8 +128,8 @@ class DDPG:
     @tf.function
     def update(
         self, state_batch, action_batch, reward_batch, next_state_batch, done_batch
-    ):
-        # Training and updating Actor & Critic networks.
+    ) -> None:
+        """Trains and updates Actor & Critic networks."""
         with tf.GradientTape() as tape:
             target_actions = self.target_actor(
                 next_state_batch, self.max_action, training=True
@@ -123,7 +156,11 @@ class DDPG:
             zip(actor_grad, self.actor.trainable_variables)
         )
 
-    def learn(self):
+    def learn(self) -> None:
+        """Performs a learning step.
+
+        Samples from replay buffer and updates networks.
+        """
         if self.memory.buffer_counter < self.batch_size:
             return
 

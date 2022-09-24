@@ -1,4 +1,4 @@
-import os 
+import os
 import random
 import yaml
 from argparse import ArgumentParser
@@ -11,8 +11,14 @@ from rl_algorithms.TensorFlow2.agents import AgentFactory
 from rl_algorithms.common.plots import plot_avg_reward
 
 
-def set_seeds(env, seed):
-    os.environ['PYTHONHASHSEED'] = str(seed)
+def set_seeds(env: gym.Env, seed: int) -> None:
+    """Sets the random seeds.
+
+    Args:
+        env: The environment to set the seed for.
+        seed: The random seed to use.
+    """
+    os.environ["PYTHONHASHSEED"] = str(seed)
     random.seed(seed)
     tf.random.set_seed(seed)
     np.random.seed(seed)
@@ -20,9 +26,9 @@ def set_seeds(env, seed):
     env.action_space.np_random.seed(seed)
 
 
-def train(agent, env, num_episodes, filename):
+def train(agent, env: gym.Env, num_episodes: int, filename: str) -> None:
     """Runs the training loop for the agent and the environment.
-    
+
     Args:
         agent: An agent object.
         env: An environment object.
@@ -30,7 +36,7 @@ def train(agent, env, num_episodes, filename):
         filename: The name of the file where the reward plot is saved to.
     """
 
-    # store reward of each episode 
+    # store reward of each episode
     ep_reward_list = []
     # store average reward for last 'n_smooth' episodes
     avg_reward_list = []
@@ -70,15 +76,15 @@ def train(agent, env, num_episodes, filename):
     plot_avg_reward(avg_reward_list, filename)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
 
     # parse arguments
     parser = ArgumentParser()
-    parser.add_argument('--agent', type=str, default="DDPG")
-    parser.add_argument('--env', type=str, default="Pendulum-v1")
-    parser.add_argument('--seed', type=int, default=1234)
-    parser.add_argument('--ep', type=int, default=150)
-    parser.add_argument('--config', type=str, help="Path to config file", default=None)
+    parser.add_argument("--agent", type=str, default="DDPG")
+    parser.add_argument("--env", type=str, default="Pendulum-v1")
+    parser.add_argument("--seed", type=int, default=1234)
+    parser.add_argument("--ep", type=int, default=150)
+    parser.add_argument("--config", type=str, help="Path to config file", default=None)
 
     args = parser.parse_args()
     params = vars(args)
@@ -86,7 +92,7 @@ if __name__ == '__main__':
     # create the environment
     env = gym.make(params["env"])
 
-    # fix random seeds   
+    # fix random seeds
     seed = params["seed"]
     set_seeds(env, seed)
 
@@ -105,4 +111,9 @@ if __name__ == '__main__':
     agent = AgentFactory.get_agent(algorithm_name, env, params=agent_params)
 
     # train the agent
-    train(agent, env, num_episodes, filename=params["agent"]+"_"+params["env"]+".png")
+    train(
+        agent,
+        env,
+        num_episodes,
+        filename=params["agent"] + "_" + params["env"] + ".png",
+    )

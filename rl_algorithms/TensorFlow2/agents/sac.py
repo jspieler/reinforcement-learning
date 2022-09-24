@@ -10,6 +10,28 @@ from rl_algorithms.TensorFlow2.utils.networks import SoftActor, Critic
 
 
 class SAC:
+    """Soft Actor-Critic (SAC).
+
+    Paper:
+        https://arxiv.org/pdf/1801.01290.pdf
+        https://arxiv.org/pdf/1801.01290.pdf
+
+    Args:
+        env: The environment to learn from.
+        lr_actor: The learning rate of the actor.
+        lr_critic: The learning rate of the critic.
+        lr_alpha: The learning rate for tuning of the entropy regularization coefficient.
+        gamma: The discount factor.
+        buffer_capacity: The size of the replay buffer.
+        tau: The soft update coefficient.
+        alpha: The starting value of the entropy regularization coefficient.
+        hidden_size: The number of neurons in the hidden layers of the actor and critic networks.
+        batch_size: The minibatch size for each gradient update.
+        update_frequency: The update frequency of the network parameters.
+        target_entropy_tuning: A boolean indicating whether the entropy coefficient is learnt or not.
+
+    """
+
     def __init__(
         self,
         env,
@@ -70,7 +92,15 @@ class SAC:
 
         self.update_network_parameters(tau=1)
 
-    def update_network_parameters(self, tau=None):
+    def update_network_parameters(self, tau=None) -> None:
+        """Updates the parameters of the target networks.
+
+        The parameters of the target actor and target critic networks are (slowly)
+        updated based on the actor and critic parameters to improve learning stability.
+
+        Args:
+            tau: The soft update coefficient indicating how "fast" the target networks are updated.
+        """
         if tau is None:
             tau = self.tau
 
@@ -86,14 +116,16 @@ class SAC:
             weights.append(weight * tau + targets[i] * (1 - tau))
         self.target_critic2.set_weights(weights)
 
-    def save_models(self):
+    def save_models(self) -> None:
+        """Saves all networks."""
         self.actor.save_weights(self.actor.checkpoint_file)
         self.critic.save_weights(self.critic.checkpoint_file)
         self.critic2.save_weights(self.critic2.checkpoint_file)
         self.target_critic.save_weights(self.target_critic.checkpoint_file)
         self.target_critic2.save_weights(self.target_critic2.checkpoint_file)
 
-    def load_models(self):
+    def load_models(self) -> None:
+        """Loads all networks."""
         self.actor.load_weights(self.actor.checkpoint_file)
         self.critic.load_weights(self.critic.checkpoint_file)
         self.critic2.load_weights(self.critic2.checkpoint_file)
@@ -101,6 +133,12 @@ class SAC:
         self.target_critic2.load_weights(self.target_critic2.checkpoint_file)
 
     def choose_action(self, state, evaluate=False):
+        """Selects an action based on the current state.
+
+        Args:
+            state: The current state.
+            evaluate: A boolean indicating whether exploration noise is applied or not.
+        """
         if evaluate is False:
             action, _, _ = self.actor(state)
         else:
@@ -111,7 +149,8 @@ class SAC:
     # @tf.function # with decoration code is not running bc. networks are not built?
     def update(
         self, state_batch, action_batch, reward_batch, next_state_batch, done_batch
-    ):
+    ) -> None:
+        """Trains and updates Actor & Critic networks."""
         # update critic
         with tf.GradientTape() as tape1, tf.GradientTape() as tape2:
             target_actions, target_log_pi, _ = self.actor(
@@ -186,7 +225,11 @@ class SAC:
         if self.trainstep % self.update_frequency == 0:
             self.update_network_parameters()
 
-    def learn(self):
+    def learn(self) -> None:
+        """Performs a learning step.
+
+        Samples from replay buffer and updates networks.
+        """
         if self.memory.buffer_counter < self.batch_size:
             return
 
