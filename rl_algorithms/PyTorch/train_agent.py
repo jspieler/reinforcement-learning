@@ -30,7 +30,6 @@ def train(agent, env, num_episodes, filename):
         agent: An agent object.
         env: An environment object.
         num_episodes: The number of training episodes.
-        seed: The random seed.
         filename: The name of the file where the reward plot is saved to.
     """
 
@@ -67,7 +66,7 @@ def train(agent, env, num_episodes, filename):
 
         ep_reward_list.append(episodic_reward)
         avg_reward = np.mean(ep_reward_list[-n_smooth:])
-        print("Episode {} -- average reward: {}".format(ep, avg_reward))
+        print(f"Episode {ep} -- average reward: {avg_reward}")
         avg_reward_list.append(avg_reward)
 
     # Plot average episodic reward against episodes
