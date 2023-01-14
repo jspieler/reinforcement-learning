@@ -5,9 +5,13 @@ import csv
 
 import datetime
 
+import pandas as pd
+
 
 class Logger:
     """Provides a logger class for logging the results."""
+    
+    # TODO: add algorithm name to data
 
     def __init__(self, log_dir=None, file_name=None) -> None:
         """Inits the Logger."""
@@ -26,7 +30,7 @@ class Logger:
 
         self.log_filepath = self.log_dir / self.file_name
         if self.log_filepath.exists():
-            new_log_filepath = self.log_filepath / "_" / date
+            new_log_filepath = self.log_filepath.replace(".csv", f"_{date}.csv")
             print(
                 f"Logfile {self.log_filepath} already exists."
                 f"Logfile will be saved to {new_log_filepath}."
@@ -40,3 +44,14 @@ class Logger:
         with open(self.log_filepath, "a", newline="") as file:
             writer = csv.writer(file)
             writer.writerow(data)
+
+
+
+def get_data(logdir: Path) -> List[pd.DataFrame]:
+    """Gets the data from all log files in the directory."""
+    data = []
+    filepaths = logdir.glob(".csv")
+    for filepath in filepaths:
+        exp_data = pd.read_csv(filepath)
+        data.append(exp_data)
+    return data
