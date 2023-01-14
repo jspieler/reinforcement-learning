@@ -9,6 +9,7 @@ import tensorflow as tf
 
 from rl_algorithms.TensorFlow2.agents import AgentFactory
 from rl_algorithms.common.plots import plot_avg_reward
+from rl_algorithms.common.logger import Logger
 
 
 def set_seeds(env: gym.Env, seed: int) -> None:
@@ -26,16 +27,17 @@ def set_seeds(env: gym.Env, seed: int) -> None:
     env.action_space.np_random.seed(seed)
 
 
-def train(agent, env: gym.Env, num_episodes: int, filename: str) -> None:
+def train(agent, env: gym.Env, num_episodes: int, logger: Logger, filename: str) -> None:
     """Runs the training loop for the agent and the environment.
 
     Args:
         agent: An agent object.
         env: An environment object.
         num_episodes: The number of training episodes.
+        logger: A Logger instance to save the results.
         filename: The name of the file where the reward plot is saved to.
     """
-
+    logger.write(["Episode", "EpisodicReward", "AverageEpisodicReward"])
     # store reward of each episode
     ep_reward_list = []
     # store average reward for last 'n_smooth' episodes
@@ -71,6 +73,7 @@ def train(agent, env: gym.Env, num_episodes: int, filename: str) -> None:
         avg_reward = np.mean(ep_reward_list[-n_smooth:])
         print(f"Episode {ep} -- average reward: {avg_reward}")
         avg_reward_list.append(avg_reward)
+        logger.write([ep, episodic_reward, avg_reward])
 
     # Plot average episodic reward against episodes
     plot_avg_reward(avg_reward_list, filename)
@@ -85,6 +88,13 @@ if __name__ == "__main__":
     parser.add_argument("--seed", type=int, default=1234)
     parser.add_argument("--ep", type=int, default=150)
     parser.add_argument("--config", type=str, help="Path to config file", default=None)
+    parser.add_argument("--logdir", type=str, help="Logging directory", default=None)
+    parser.add_argument(
+        "--logfilename",
+        type=str,
+        help="Logging filename (default: current timestamp)",
+        default=None,
+    )
 
     args = parser.parse_args()
     params = vars(args)
@@ -110,10 +120,16 @@ if __name__ == "__main__":
     # create agent
     agent = AgentFactory.get_agent(algorithm_name, env, params=agent_params)
 
+    # create logger
+    log_dir = params["logdir"]
+    log_filename = params["logfilename"]
+    logger = Logger(log_dir, log_filename)
+
     # train the agent
     train(
         agent,
         env,
         num_episodes,
+        logger,
         filename=params["agent"] + "_" + params["env"] + ".png",
     )
