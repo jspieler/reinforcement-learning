@@ -1,8 +1,10 @@
 numpy
+pandas
 tensorflow-gpu
 tensorflow-probability
 torch
 torchvision
 torchaudio
 matplotlib
+seaborn
 gym
